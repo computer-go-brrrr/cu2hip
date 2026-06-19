@@ -1,0 +1,19 @@
+# Build outputs (regenerable; see per-component READMEs)
+_build/
+frontend/build/
+frontend/build-dbg/
+cli/target/
+rocq/*.vo
+rocq/*.vos
+rocq/*.vok
+rocq/*.glob
+rocq/.Makefile.d
+rocq/Makefile
+rocq/Makefile.conf
+rocq/.*.aux
+core/lib/extracted/
+# Editor / OS
+.vscode/
+*.swp
+*~
+.DS_Store
