@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuda-rocm/minicuda-v1",
+  "title": "MiniCUDA v1 — C++ frontend output envelope",
+  "description": "Single contract between frontend (G2) and verified core (G3). Rocq AST mirrors these shapes 1:1.",
+  "type": "object",
+  "required": ["schema", "source", "program", "diagnostics"],
+  "properties": {
+    "schema": { "const": "minicuda/v1" },
+    "source": { "type": "string", "description": "input .cu path" },
+    "program": {
+      "description": "null iff diagnostics contains a blocking error",
+      "type": ["object", "null"],
+      "required": ["header", "kernels", "host"],
+      "properties": {
+        "header": { "const": "cuda_runtime.h" },
+        "kernels": { "type": "array", "items": { "$ref": "#/$defs/kernel" } },
+        "host": { "type": "array", "items": { "$ref": "#/$defs/hostNode" } }
+      }
+    },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+  },
+  "$defs": {
+    "expr": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "name"],
+          "properties": { "kind": { "const": "var" }, "name": { "type": "string" } } },
+        { "type": "object", "required": ["kind", "value"],
+          "properties": { "kind": { "const": "int" }, "value": { "type": "integer" } } },
+        { "type": "object", "required": ["kind", "value"],
+          "properties": { "kind": { "const": "float" }, "value": { "type": "number" } } },
+        { "type": "object", "required": ["kind", "op", "left", "right"],
+          "properties": {
+            "kind": { "const": "binop" },
+            "op": { "enum": ["+", "-", "*", "/", "%", "<", "<=", ">", ">=", "==", "!=", "&&", "||"] },
+            "left": { "$ref": "#/$defs/expr" }, "right": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "required": ["kind", "op", "expr"],
+          "properties": {
+            "kind": { "const": "unop" }, "op": { "enum": ["!", "-"] },
+            "expr": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "required": ["kind", "base", "index"],
+          "properties": {
+            "kind": { "const": "subscript" },
+            "base": { "$ref": "#/$defs/expr" }, "index": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "required": ["kind", "name"],
+          "properties": {
+            "kind": { "const": "builtin" },
+            "name": { "enum": ["threadIdx.x", "threadIdx.y", "threadIdx.z", "blockIdx.x", "blockIdx.y", "blockIdx.z", "blockDim.x", "blockDim.y", "blockDim.z", "gridDim.x", "gridDim.y", "gridDim.z"] } } },
+        { "type": "object", "required": ["kind", "name"],
+          "properties": { "kind": { "const": "addrof" }, "name": { "type": "string" } } },
+        { "type": "object", "required": ["kind", "name", "args"],
+          "properties": {
+            "kind": { "const": "call" }, "name": { "type": "string" },
+            "args": { "type": "array", "items": { "$ref": "#/$defs/expr" } } } }
+      ]
+    },
+    "stmt": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "name", "type", "value"],
+          "properties": {
+            "kind": { "const": "let" }, "name": { "type": "string" },
+            "type": { "$ref": "#/$defs/scalarType" }, "value": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "required": ["kind", "target", "value"],
+          "properties": {
+            "kind": { "const": "store" },
+            "target": { "$ref": "#/$defs/expr" }, "value": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "required": ["kind", "cond", "then"],
+          "properties": {
+            "kind": { "const": "if" }, "cond": { "$ref": "#/$defs/expr" },
+            "then": { "type": "array", "items": { "$ref": "#/$defs/stmt" } },
+            "else": { "type": "array", "items": { "$ref": "#/$defs/stmt" } } } },
+        { "type": "object", "required": ["kind"],
+          "properties": { "kind": { "const": "syncthreads" } } },
+        { "type": "object", "required": ["kind", "expr"],
+          "properties": {
+            "kind": { "const": "expr_stmt" }, "expr": { "$ref": "#/$defs/expr" } } }
+      ]
+    },
+    "kernel": {
+      "type": "object",
+      "required": ["kind", "name", "qualifier", "params", "shared", "body"],
+      "properties": {
+        "kind": { "const": "kernel" }, "name": { "type": "string" },
+        "qualifier": { "const": "__global__" },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/param" } },
+        "shared": { "type": "array", "items": { "$ref": "#/$defs/sharedDecl" } },
+        "body": { "type": "array", "items": { "$ref": "#/$defs/stmt" } }
+      }
+    },
+    "param": {
+      "type": "object", "required": ["name", "type", "pointer"],
+      "properties": {
+        "name": { "type": "string" }, "type": { "$ref": "#/$defs/scalarType" },
+        "pointer": { "type": "boolean" } }
+    },
+    "sharedDecl": {
+      "type": "object", "required": ["name", "type", "size"],
+      "properties": {
+        "name": { "type": "string" }, "type": { "$ref": "#/$defs/scalarType" },
+        "size": { "type": "integer", "minimum": 1 } }
+    },
+    "scalarType": { "enum": ["int", "float", "double"] },
+    "copyKind": { "enum": ["HostToDevice", "DeviceToHost", "DeviceToDevice", "HostToHost"] },
+    "hostNode": {
+      "oneOf": [
+        { "type": "object", "required": ["kind", "name", "args"],
+          "properties": {
+            "kind": { "const": "api" },
+            "name": { "enum": ["cudaMalloc", "cudaMemcpy", "cudaMemset", "cudaFree", "cudaStreamCreate", "cudaStreamSynchronize", "cudaStreamDestroy", "cudaEventCreate", "cudaEventRecord", "cudaEventSynchronize", "cudaEventDestroy", "cudaEventElapsedTime", "cudaGetLastError", "cudaGetErrorString", "cudaSetDevice", "cudaDeviceSynchronize"] },
+            "args": { "type": "array", "items": { "$ref": "#/$defs/expr" } },
+            "copyKind": { "$ref": "#/$defs/copyKind" } } },
+        { "type": "object", "required": ["kind", "kernel", "grid", "block", "args"],
+          "properties": {
+            "kind": { "const": "launch" }, "kernel": { "type": "string" },
+            "grid": { "$ref": "#/$defs/expr" }, "block": { "$ref": "#/$defs/expr" },
+            "stream": { "type": ["string", "null"] },
+            "args": { "type": "array", "items": { "$ref": "#/$defs/expr" } } } },
+        { "type": "object", "required": ["kind", "text", "loc"],
+          "properties": {
+            "kind": { "const": "host_code" },
+            "text": { "type": "string", "description": "opaque passthrough, byte-identical; MUST NOT contain cuda* identifiers outside modeled api nodes" },
+            "loc": { "type": "string" } } }
+      ]
+    },
+    "diagnostic": {
+      "type": "object", "required": ["code", "feature", "loc", "hint"],
+      "properties": {
+        "code": { "const": "Unsupported" }, "feature": { "type": "string" },
+        "loc": { "type": "string" }, "hint": { "type": "string" } }
+    }
+  }
+}
