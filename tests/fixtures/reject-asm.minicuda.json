@@ -1,0 +1,13 @@
+{
+  "schema": "minicuda/v1",
+  "source": "tests/reject/asm.cu",
+  "program": null,
+  "diagnostics": [
+    {
+      "code": "Unsupported",
+      "feature": "inline-asm",
+      "loc": "tests/reject/asm.cu:4:3",
+      "hint": "inline PTX asm is out of scope for v1 (see SUPPORTED.md); lift to portable HIP or await the v2 asm-lifter"
+    }
+  ]
+}
