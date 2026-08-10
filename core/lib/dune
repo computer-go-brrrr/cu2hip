@@ -1,0 +1,4 @@
+(library
+ (name cu2hip_core)
+ (modules mini_json)
+ (libraries extracted yojson))

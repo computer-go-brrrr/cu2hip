@@ -1,0 +1,3 @@
+(executable
+ (name minimap)
+ (libraries cu2hip_core extracted yojson))
