@@ -1,0 +1,3 @@
+(executable
+ (name hip_print)
+ (libraries cu2hip_core extracted yojson))
