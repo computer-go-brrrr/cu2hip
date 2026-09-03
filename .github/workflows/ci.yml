@@ -1,0 +1,71 @@
+name: cu2hip-ci
+
+on:
+  push:
+  pull_request:
+
+# v1 CI: host jobs rebuild everything from scratch and run the frozen
+# gates; the ROCm job is compile-check only (public runners have no AMD
+# GPU). GPU execution runs via docker/rocm714/ci.sh where /dev/kfd exists.
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install opam + OCaml 5.3
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -qy opam build-essential
+          opam init --disable-sandboxing -y
+          opam switch create cuda-rocm-rocq ocaml-base-compiler.5.3.0 -y
+      - name: Install Rocq 9.2.0
+        run: |
+          eval $(opam env --switch=cuda-rocm-rocq)
+          opam install -y rocq-prover rocq-core=9.2.0
+      - name: Build proofs (vos + vo)
+        run: |
+          eval $(opam env --switch=cuda-rocm-rocq)
+          make -C rocq vos && make -C rocq
+      - name: Check zero admits
+        run: |
+          test -z "$(grep -rn 'Admitted' rocq/*.v || true)"
+          grep -q "zero admits" docs/ADMITS.md
+
+  host-pipeline:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchains
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -qy clang-22 cmake cargo python3
+          # CUDA toolkit needed for headers (frontend --cuda-path)
+      - name: Frontend
+        run: |
+          cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build frontend/build -j"$(nproc)"
+      - name: Core + printer
+        run: |
+          eval $(opam env --switch=cuda-rocm-rocq)
+          dune build
+      - name: CLI
+        run: cargo build --release --manifest-path cli/Cargo.toml
+      - name: Frozen gates
+        run: |
+          export CU2MINI="$PWD/frontend/build/cu2mini"
+          export MINIMAP="$PWD/_build/default/core/bin/minimap.exe"
+          export HIP_PRINT="$PWD/_build/default/printer/hip_print.exe"
+          sh tests/run_e2e.sh
+          ./cli/target/release/cu2hip --batch tests/corpus \
+            --output /tmp/batch-h --report /tmp/batch-r --expect-exit 0
+          ./cli/target/release/cu2hip --batch tests/reject \
+            --output /tmp/batch-rj --report /tmp/batch-rj --expect-exit 2
+
+  hipcc-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: hipcc compile check (gfx90a,gfx942)
+        run: sh docker/rocm714/ci.sh
+        env:
+          ROCM_IMAGE: rocm/dev-ubuntu-24.04:7.14.0-full
