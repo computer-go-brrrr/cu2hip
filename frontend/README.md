@@ -12,6 +12,15 @@ cmake --build build -j$(nproc)
 Requires Clang/LLVM dev files (`libclang-cpp`, ASTMatchers/Tooling headers)
 and a CUDA toolkit for headers (`--cuda-path`, default `/opt/cuda`).
 
+On systems with several Clang installs, pin the discovery explicitly
+(CI hit a half-installed system clang-18 shadowing clang-22 otherwise):
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_DIR=/usr/lib/llvm-22/lib/cmake/llvm \
+  -DClang_DIR=/usr/lib/llvm-22/lib/cmake/clang
+```
+
 ## Run
 
 ```sh
