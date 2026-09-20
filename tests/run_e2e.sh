@@ -8,12 +8,14 @@
 set -e
 cd "$(dirname "$0")/.."
 CU2MINI=frontend/build/cu2mini
+CUDA_PATH="${CUDA_PATH:-/opt/cuda}"
+CU2MINI_FLAGS="--cuda-path $CUDA_PATH --arch sm_86"
 eval "$(opam env --switch=cuda-rocm-rocq 2>/dev/null)"
 MM=_build/default/core/bin/minimap.exe
 HP=_build/default/printer/hip_print.exe
 python3 tests/check_fixtures.py
 for k in vectorAdd saxpy; do
-  $CU2MINI tests/corpus/$k.cu -o /tmp/e2e.$k.cu.json
+  $CU2MINI tests/corpus/$k.cu -o /tmp/e2e.$k.cu.json $CU2MINI_FLAGS
   $MM /tmp/e2e.$k.cu.json -o /tmp/e2e.$k.hip.json
   $HP /tmp/e2e.$k.hip.json -o /tmp/e2e.$k.hip
   cmp /tmp/e2e.$k.hip tests/expected/$k.hip
@@ -21,13 +23,13 @@ for k in vectorAdd saxpy; do
 done
 # Extra: __shared__ pipeline path (outside the proved fragment, see
 # tests/extra/reduce-shared.expected.md).
-$CU2MINI tests/extra/reduce-shared.cu -o /tmp/e2e.rs.cu.json
+$CU2MINI tests/extra/reduce-shared.cu -o /tmp/e2e.rs.cu.json $CU2MINI_FLAGS
 $MM /tmp/e2e.rs.cu.json -o /tmp/e2e.rs.hip.json
 $HP /tmp/e2e.rs.hip.json -o /tmp/e2e.rs.hip
 cmp /tmp/e2e.rs.hip tests/expected/reduce-shared.hip
 echo "E2E OK: reduce-shared (extra)"
 check_reject() { # file feature
-  if $CU2MINI tests/reject/$1.cu -o /tmp/e2e.$1.json 2>/dev/null; then
+  if $CU2MINI tests/reject/$1.cu -o /tmp/e2e.$1.json $CU2MINI_FLAGS 2>/dev/null; then
     echo "REJECT FAIL (exit 0): $1"; exit 1
   fi
   feat=$(python3 -c "import json;print([d['feature'] for d in json.load(open('/tmp/e2e.$1.json'))['diagnostics']])")

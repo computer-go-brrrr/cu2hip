@@ -36,18 +36,20 @@ pub struct Report {
     pub input: String,
     pub output: String,
     pub arch: String,
+    pub cuda_path: String,
     pub stages: Vec<Stage>,
     pub diagnostics: Vec<Diagnostic>,
     pub validation: Option<Validation>,
 }
 
 impl Report {
-    pub fn new(input: &Path, output: &Path, arch: &str) -> Self {
+    pub fn new(input: &Path, output: &Path, arch: &str, cuda_path: &str) -> Self {
         Report {
             version: "cu2hip-report/v1".to_string(),
             input: input.to_string_lossy().into_owned(),
             output: output.to_string_lossy().into_owned(),
             arch: arch.to_string(),
+            cuda_path: cuda_path.to_string(),
             stages: Vec::new(),
             diagnostics: Vec::new(),
             validation: None,

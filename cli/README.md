@@ -16,7 +16,7 @@ Deps: `clap` (derive), `serde`, `serde_json` (see `Cargo.lock`).
 
 ```sh
 # Single file (SRS CLI contract)
-cu2hip [--arch sm_86] in.cu -o out.hip --report report.json [--validate]
+cu2hip [--arch sm_86] [--cuda-path /opt/cuda] in.cu -o out.hip --report report.json [--validate]
 
 # Batch with per-file expectations (parallel via std threads)
 cu2hip --batch tests/corpus --output out/ --report reports/ --expect-exit 0
@@ -24,7 +24,9 @@ cu2hip --batch tests/reject --output out/ --report reports/ --expect-exit 2
 ```
 
 Stage discovery: `--cu2mini/--minimap/--hip-print` flags, else
-`$CU2MINI/$MINIMAP/$HIP_PRINT`, else `PATH`.
+`$CU2MINI/$MINIMAP/$HIP_PRINT`, else `PATH`. `--cuda-path` (default
+`/opt/cuda`) is forwarded to `cu2mini`; `tests/run_e2e.sh` honors
+`$CUDA_PATH` the same way.
 
 `--validate` (single mode): compiles the original `.cu` with `nvcc` and the
 transpiled `.hip` through `--shim-dir` (default `tests/shim`), runs both on
@@ -39,7 +41,7 @@ expectation failure · `2` fail-closed reject (diagnostics in report, no
 
 ## Report schema (`cu2hip-report/v1`)
 
-`{version, input, output, arch, stages: [{name, exit, ms}],
+`{version, input, output, arch, cuda_path, stages: [{name, exit, ms}],
 diagnostics: [{code, feature, loc, hint}], validation: null |
 {status: match|mismatch|skipped, cuda_stdout, hip_stdout, cuda_exit,
 hip_exit, note}}`.

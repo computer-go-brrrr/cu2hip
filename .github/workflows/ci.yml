@@ -25,6 +25,8 @@ jobs:
       - name: Build proofs (vos + vo)
         run: |
           eval $(opam env --switch=cuda-rocm-rocq)
+          # Makefile* is gitignored by design; regenerate from _RocqProject.
+          rocq makefile -f rocq/_RocqProject -o rocq/Makefile
           make -C rocq vos && make -C rocq
       - name: Check zero admits
         run: |
@@ -35,11 +37,30 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install toolchains
+      - name: Install Clang 22 (apt.llvm.org)
         run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+          echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" \
+            | sudo tee /etc/apt/sources.list.d/llvm.list > /dev/null
           sudo apt-get update -q
-          sudo apt-get install -qy clang-22 cmake cargo python3
-          # CUDA toolkit needed for headers (frontend --cuda-path)
+          sudo apt-get install -qy clang-22 libclang-22-dev llvm-22-dev cmake
+      - name: Install CUDA toolkit (NVIDIA repo, minimal build)
+        run: |
+          wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+          sudo dpkg -i cuda-keyring_1.1-1_all.deb
+          sudo apt-get update -q
+          sudo apt-get install -qy cuda-minimal-build-12-9
+          echo "CUDA_PATH=/usr/local/cuda-12.9" >> "$GITHUB_ENV"
+      - name: Install opam + OCaml 5.3 + Rocq 9.2.0
+        run: |
+          sudo apt-get install -qy opam build-essential
+          opam init --disable-sandboxing -y
+          opam switch create cuda-rocm-rocq ocaml-base-compiler.5.3.0 -y
+          eval $(opam env --switch=cuda-rocm-rocq)
+          opam install -y rocq-prover rocq-core=9.2.0
+      - name: Install Rust
+        run: sudo apt-get install -qy cargo
       - name: Frontend
         run: |
           cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release
@@ -47,6 +68,7 @@ jobs:
       - name: Core + printer
         run: |
           eval $(opam env --switch=cuda-rocm-rocq)
+          opam install -y yojson
           dune build
       - name: CLI
         run: cargo build --release --manifest-path cli/Cargo.toml

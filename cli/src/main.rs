@@ -30,6 +30,9 @@ struct Args {
     /// GPU arch for the frontend (e.g. sm_86)
     #[arg(long, default_value = "sm_86")]
     arch: String,
+    /// CUDA toolkit path forwarded to cu2mini
+    #[arg(long, default_value = "/opt/cuda")]
+    cuda_path: String,
     /// Batch mode: transpile every *.cu in INPUT dir
     #[arg(long, default_value_t = false)]
     batch: bool,
@@ -75,11 +78,12 @@ fn s(p: &Path) -> String {
 fn transpile_one(
     tools: &Tools,
     arch: &str,
+    cuda_path: &str,
     cu: &Path,
     hip: &Path,
     scratch: &Path,
 ) -> (Report, i32) {
-    let mut rep = Report::new(cu, hip, arch);
+    let mut rep = Report::new(cu, hip, arch, cuda_path);
     let cu_json = scratch.join("cu.json");
     let hip_json = scratch.join("hip.json");
 
@@ -91,6 +95,8 @@ fn transpile_one(
             s(&cu_json),
             "--arch".to_string(),
             arch.to_string(),
+            "--cuda-path".to_string(),
+            cuda_path.to_string(),
         ],
     ) {
         Ok(r) => r,
@@ -198,7 +204,7 @@ fn single(a: &Args) -> i32 {
             return 3;
         }
     };
-    let (mut rep, code) = transpile_one(&tools, &a.arch, &a.input, &out, &scratch);
+    let (mut rep, code) = transpile_one(&tools, &a.arch, &a.cuda_path, &a.input, &out, &scratch);
     if code == 0 && a.validate {
         match validate::find_nvcc(a.nvcc.clone()) {
             None => {
@@ -274,8 +280,10 @@ fn batch(a: &Args) -> i32 {
         return 3;
     }
     let arch = a.arch.clone();
+    let cuda_path = a.cuda_path.clone();
     let tools_ref = &tools;
     let arch_ref = &arch;
+    let cuda_path_ref = &cuda_path;
     let results: Vec<(PathBuf, i32, u128, usize)> = std::thread::scope(|scope| {
         let mut handles = Vec::new();
         for cu in &files {
@@ -285,7 +293,7 @@ fn batch(a: &Args) -> i32 {
             handles.push(scope.spawn(move || {
                 let scratch = scratch_dir(&stem).expect("scratch");
                 let t0 = std::time::Instant::now();
-                let (rep, code) = transpile_one(tools_ref, arch_ref, cu, &hip, &scratch);
+                let (rep, code) = transpile_one(tools_ref, arch_ref, cuda_path_ref, cu, &hip, &scratch);
                 let ndiag = rep.diagnostics.len();
                 if let Some(rp) = rep_path {
                     let _ = rep.write(&rp);
