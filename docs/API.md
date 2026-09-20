@@ -79,4 +79,5 @@ parameters, returns, errors, minimal example._
 | 2026-09-20 | cu2hip CLI + report/v1 + shim differential defined | G5 |
 | 2026-09-20 | cu2hip --cuda-path flag; report/v1 gains cuda_path; CI installs Clang 22 + CUDA 12.9, regenerates Rocq Makefile | CI fix |
 | 2026-09-20 | --resource-dir flag (cu2mini/cu2hip/run_e2e) for distro Clang layouts | CI fix |
+| 2026-09-20 | --version on all four binaries; scripts/make-release.sh packs dist tarball; dune needs @all to recurse | Release |
 | 2026-09-20 | G2 hardening: host-cuda-leak/unsupported-include diagnostics, __shared__ collect+emit (outside proof), sizeof(int/float/double), semicolon capture | G6/G7 |
