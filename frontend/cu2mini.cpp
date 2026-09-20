@@ -813,15 +813,17 @@ struct ActionFactory : FrontendActionFactory {
 
 int main(int argc, const char **argv) {
   if (argc < 4) {
-    llvm::errs() << "usage: cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX]\n";
+    llvm::errs() << "usage: cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX] [--resource-dir D]\n";
     return 3;
   }
-  std::string in, out, cudaPath = "/opt/cuda", arch = "sm_86";
+  std::string in, out, cudaPath = "/opt/cuda", arch = "sm_86",
+                resourceDir = "/usr/lib/clang/22";
   for (int i = 1; i < argc; ++i) {
     std::string a = argv[i];
     if (a == "-o" && i + 1 < argc) out = argv[++i];
     else if (a == "--cuda-path" && i + 1 < argc) cudaPath = argv[++i];
     else if (a == "--arch" && i + 1 < argc) arch = argv[++i];
+    else if (a == "--resource-dir" && i + 1 < argc) resourceDir = argv[++i];
     else if (!a.empty() && a[0] != '-') in = a;
     else {
       llvm::errs() << "unknown arg: " << a << "\n";
@@ -829,11 +831,11 @@ int main(int argc, const char **argv) {
     }
   }
   if (in.empty() || out.empty()) {
-    llvm::errs() << "usage: cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX]\n";
+    llvm::errs() << "usage: cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX] [--resource-dir D]\n";
     return 3;
   }
   std::vector<std::string> args = {"-std=c++17",
-                                   "-resource-dir=/usr/lib/clang/22",
+                                   "-resource-dir=" + resourceDir,
                                    "--cuda-path=" + cudaPath,
                                    "--cuda-device-only",
                                    "--cuda-gpu-arch=" + arch,

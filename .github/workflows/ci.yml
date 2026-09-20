@@ -77,11 +77,14 @@ jobs:
           export CU2MINI="$PWD/frontend/build/cu2mini"
           export MINIMAP="$PWD/_build/default/core/bin/minimap.exe"
           export HIP_PRINT="$PWD/_build/default/printer/hip_print.exe"
+          export RESOURCE_DIR="$(clang++-22 -print-resource-dir)"
           sh tests/run_e2e.sh
           ./cli/target/release/cu2hip --batch tests/corpus \
-            --output /tmp/batch-h --report /tmp/batch-r --expect-exit 0
+            --output /tmp/batch-h --report /tmp/batch-r --expect-exit 0 \
+            --cuda-path "$CUDA_PATH" --resource-dir "$RESOURCE_DIR"
           ./cli/target/release/cu2hip --batch tests/reject \
-            --output /tmp/batch-rj --report /tmp/batch-rj --expect-exit 2
+            --output /tmp/batch-rj --report /tmp/batch-rj --expect-exit 2 \
+            --cuda-path "$CUDA_PATH" --resource-dir "$RESOURCE_DIR"
 
   hipcc-check:
     runs-on: ubuntu-24.04

@@ -15,14 +15,17 @@ and a CUDA toolkit for headers (`--cuda-path`, default `/opt/cuda`).
 ## Run
 
 ```sh
-./build/cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX]
+./build/cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX] [--resource-dir D]
 ```
 
 Exit codes: `0` ok · `2` unsupported input (`program: null` + `diagnostics`,
 one entry per site) · `3` internal error (ClangTool failure, bad CLI, no output).
 
 Fixed parse flags: `-std=c++17 --cuda-device-only --cuda-gpu-arch=<arch>`
-plus `-resource-dir` pointing at the toolchain Clang (not the tool binary).
+plus an explicit `-resource-dir` (default `/usr/lib/clang/22`; distro
+packages such as Ubuntu's `clang-22` use e.g.
+`/usr/lib/llvm-22/lib/clang/22` — pass it explicitly or the CUDA wrapper
+header is not found, since the tool binary is not the clang driver).
 
 ## Conversion rules (fail closed)
 

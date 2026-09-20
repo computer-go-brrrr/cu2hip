@@ -16,7 +16,7 @@ Deps: `clap` (derive), `serde`, `serde_json` (see `Cargo.lock`).
 
 ```sh
 # Single file (SRS CLI contract)
-cu2hip [--arch sm_86] [--cuda-path /opt/cuda] in.cu -o out.hip --report report.json [--validate]
+cu2hip [--arch sm_86] [--cuda-path /opt/cuda] [--resource-dir /usr/lib/clang/22] in.cu -o out.hip --report report.json [--validate]
 
 # Batch with per-file expectations (parallel via std threads)
 cu2hip --batch tests/corpus --output out/ --report reports/ --expect-exit 0

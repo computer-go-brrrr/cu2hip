@@ -21,8 +21,8 @@ or modifies an API MUST update this file in the same change.
 
 | Command    | Purpose | Status |
 |------------|---------|--------|
-| `cu2hip [--arch <archs>] [--cuda-path P] <in.cu> -o <out.hip> --report <report.json>` | End-to-end transpilation driver | defined (G5) |
-| `cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX]` | Stage tool: CUDA subset → MiniCUDA.json; exits 0/2/3 | defined (G2) |
+| `cu2hip [--arch <archs>] [--cuda-path P] [--resource-dir D] <in.cu> -o <out.hip> --report <report.json>` | End-to-end transpilation driver | defined (G5) |
+| `cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX] [--resource-dir D]` | Stage tool: CUDA subset → MiniCUDA.json; exits 0/2/3 | defined (G2) |
 | `minimap <in.minicuda.json> -o <out.minihip.json>` | Stage tool: runs EXTRACTED `Map.map_program`; exits 0/2/3 | defined (G4) |
 | `hip_print <in.minihip.json> -o <out.hip>` | Stage tool: MiniHIP.json → .hip; exit 0/3 | defined (G4) |
 
@@ -78,4 +78,5 @@ parameters, returns, errors, minimal example._
 | 2026-09-20 | minimap + hip_print defined; E2E green incl. GPU shim runs | G4 |
 | 2026-09-20 | cu2hip CLI + report/v1 + shim differential defined | G5 |
 | 2026-09-20 | cu2hip --cuda-path flag; report/v1 gains cuda_path; CI installs Clang 22 + CUDA 12.9, regenerates Rocq Makefile | CI fix |
+| 2026-09-20 | --resource-dir flag (cu2mini/cu2hip/run_e2e) for distro Clang layouts | CI fix |
 | 2026-09-20 | G2 hardening: host-cuda-leak/unsupported-include diagnostics, __shared__ collect+emit (outside proof), sizeof(int/float/double), semicolon capture | G6/G7 |
