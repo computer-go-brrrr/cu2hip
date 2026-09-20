@@ -884,10 +884,15 @@ int main(int argc, const char **argv) {
   }
   ActionFactory factory(res);
   int rc = tool.run(&factory);
-  if (rc != 0) {
+  if (rc != 0 && res.preDiags.empty()) {
     llvm::errs() << "cu2mini: ClangTool failed (rc=" << rc << ")\n";
     return 3;
   }
+  // NOTE: when ClangTool fails BUT the textual pre-scan already diagnosed
+  // unsupported input (e.g. a cublas header that is not even installed),
+  // still emit the fail-closed envelope (program null + preDiags, exit 2)
+  // instead of dying with no output file.
+  if (rc != 0) res.tuOk = false;
   FILE *f = fopen(out.c_str(), "w");
   if (!f) {
     llvm::errs() << "cu2mini: cannot open " << out << "\n";

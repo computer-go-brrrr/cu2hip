@@ -24,6 +24,11 @@ Require Import Cu2Hip.MiniCuda Cu2Hip.MiniHip Cu2Hip.Map.
 Import ListNotations.
 Open Scope string_scope.
 
+(* Lockstep case analysis below destructs value payloads exhaustively; most
+   payloads are intentionally unused (shape mismatch closes by reflexivity).
+   The resulting unused-intro-pattern warnings are noise, silenced here. *)
+Set Warnings "-unused-intro-pattern".
+
 Definition WellSync (p : program) : Prop :=
   Forall (fun k => kshared k = []%list) (pkernels p).
 
