@@ -37,7 +37,9 @@ glue; real `hipcc`/AMD-GPU checking lands at G6.
 
 `0` ok (validation match/skipped) · `1` validation mismatch or batch
 expectation failure · `2` fail-closed reject (diagnostics in report, no
-`.hip`) · `3` internal error (bad CLI, missing stage, IO).
+`.hip`) · `3` internal error (bad CLI, missing stage, IO). Stage crashes
+(exit other than 0/2) are recorded as `StageFailed` diagnostics carrying
+the stage's stderr tail.
 
 ## Report schema (`cu2hip-report/v1`)
 

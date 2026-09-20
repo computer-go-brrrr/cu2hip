@@ -77,6 +77,20 @@ fn s(p: &Path) -> String {
     p.to_string_lossy().into_owned()
 }
 
+/// Record a stage failure (exit other than 0/2) with its stderr tail.
+fn stage_failed(rep: &mut Report, cu: &Path, stage: &str, r: &StageOutput) {
+    let mut tail = r.stderr.trim().to_string();
+    if tail.len() > 500 {
+        tail = format!("...{}", &tail[tail.len() - 500..]);
+    }
+    rep.diagnostics.push(Diagnostic {
+        code: "StageFailed".to_string(),
+        feature: stage.to_string(),
+        loc: s(cu),
+        hint: tail,
+    });
+}
+
 /// Run the three stages for one file. Returns (report, exit).
 fn transpile_one(
     tools: &Tools,
@@ -126,6 +140,7 @@ fn transpile_one(
         return (rep, 2);
     }
     if r.exit != 0 {
+        stage_failed(&mut rep, cu, "cu2mini", &r);
         return (rep, 3);
     }
 
@@ -154,6 +169,7 @@ fn transpile_one(
         return (rep, 2);
     }
     if r.exit != 0 {
+        stage_failed(&mut rep, cu, "minimap", &r);
         return (rep, 3);
     }
 
@@ -178,6 +194,7 @@ fn transpile_one(
         ms: r.ms,
     });
     if r.exit != 0 {
+        stage_failed(&mut rep, cu, "hip_print", &r);
         return (rep, 3);
     }
     (rep, 0)

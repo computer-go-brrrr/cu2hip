@@ -54,7 +54,10 @@ jobs:
           wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update -q
-          sudo apt-get install -qy cuda-minimal-build-12-9
+          # minimal-build (compiler + cudart + libdevice) plus curand dev
+          # headers, which Clang's CUDA wrapper unconditionally includes
+          # (curand_mtgp32_kernel.h) but minimal-build omits.
+          sudo apt-get install -qy cuda-minimal-build-12-9 cuda-curand-dev-12-9
           echo "CUDA_PATH=/usr/local/cuda-12.9" >> "$GITHUB_ENV"
       - name: Install opam + OCaml 5.3 + Rocq 9.2.0
         run: |
