@@ -88,7 +88,8 @@ jobs:
           mkdir -p ../core/lib/extracted
           make vos && make
           cd ..
-          dune build
+          # NOTE: bare `dune build` only builds the cwd alias; @all recurses.
+          dune build @all
       - name: CLI
         run: cargo build --release --manifest-path cli/Cargo.toml
       - name: Frozen gates

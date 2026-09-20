@@ -13,7 +13,7 @@ make -C rocq vos && make -C rocq
 # 2. pipeline
 cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release
 cmake --build frontend/build -j$(nproc)
-dune build
+dune build @all   # @all required: bare `dune build` skips subdirs
 cargo build --release --manifest-path cli/Cargo.toml
 # 3. transpile + validate
 export CU2MINI=$PWD/frontend/build/cu2mini

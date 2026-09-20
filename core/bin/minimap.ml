@@ -26,7 +26,10 @@ let () =
   let i = ref 1 in
   while !i < Array.length Sys.argv do
     let a = Sys.argv.(!i) in
-    if a = "-o" && !i + 1 < Array.length Sys.argv then (
+    if a = "--version" || a = "-V" then (
+      print_endline "minimap 0.1.0";
+      exit 0)
+    else if a = "-o" && !i + 1 < Array.length Sys.argv then (
       output := Sys.argv.(!i + 1);
       i := !i + 2)
     else if a <> "" && a.[0] <> '-' then (

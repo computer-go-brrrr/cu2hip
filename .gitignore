@@ -1,5 +1,6 @@
 # Build outputs (regenerable; see per-component READMEs)
 _build/
+dist/
 frontend/build/
 frontend/build-dbg/
 cli/target/

@@ -812,6 +812,13 @@ struct ActionFactory : FrontendActionFactory {
 } // namespace
 
 int main(int argc, const char **argv) {
+  for (int i = 1; i < argc; ++i) {
+    std::string a = argv[i];
+    if (a == "--version" || a == "-V") {
+      llvm::outs() << "cu2mini 0.1.0\n";
+      return 0;
+    }
+  }
   if (argc < 4) {
     llvm::errs() << "usage: cu2mini <in.cu> -o <out.json> [--cuda-path P] [--arch sm_XX] [--resource-dir D]\n";
     return 3;
@@ -824,6 +831,10 @@ int main(int argc, const char **argv) {
     else if (a == "--cuda-path" && i + 1 < argc) cudaPath = argv[++i];
     else if (a == "--arch" && i + 1 < argc) arch = argv[++i];
     else if (a == "--resource-dir" && i + 1 < argc) resourceDir = argv[++i];
+    else if (a == "--version" || a == "-V") {
+      llvm::outs() << "cu2mini 0.1.0\n";
+      return 0;
+    }
     else if (!a.empty() && a[0] != '-') in = a;
     else {
       llvm::errs() << "unknown arg: " << a << "\n";

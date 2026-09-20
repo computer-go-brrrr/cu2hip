@@ -24,7 +24,7 @@ CompCert's extraction trust.
 
 ```sh
 eval $(opam env --switch=cuda-rocm-rocq)
-dune build                                   # from repo root
+dune build @all   # NOTE: bare `dune build` only builds the cwd alias (empty at root)
 _build/default/core/bin/minimap.exe tests/fixtures/vectorAdd.minicuda.json -o /tmp/x.json
 ```
 
