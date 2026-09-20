@@ -1,0 +1,8 @@
+(library
+ (name extracted)
+ (modules MiniCuda MiniHip Map Ascii BinNums Datatypes ListDef String PrimFloat)
+ (libraries rocq-runtime.kernel))
+
+(env
+ (dev
+  (flags (:standard -w -33))))

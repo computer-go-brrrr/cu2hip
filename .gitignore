@@ -11,7 +11,12 @@ rocq/.Makefile.d
 rocq/Makefile
 rocq/Makefile.conf
 rocq/.*.aux
-core/lib/extracted/
+# Rocq extraction output (generated; the hand-written dune+README stay tracked)
+core/lib/extracted/*.ml
+core/lib/extracted/*.mli
+core/lib/extracted/*.vo*
+core/lib/extracted/*.glob
+core/lib/extracted/*.aux
 # Editor / OS
 .vscode/
 *.swp

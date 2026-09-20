@@ -29,6 +29,8 @@ jobs:
           # NOTE: -o must be a bare filename inside rocq/.
           cd rocq
           rocq makefile -f _RocqProject -o Makefile
+          # Extraction output dir is gitignored; extraction needs it to exist.
+          mkdir -p ../core/lib/extracted
           make vos && make
       - name: Check zero admits
         run: |
@@ -76,6 +78,13 @@ jobs:
         run: |
           eval $(opam env --switch=cuda-rocm-rocq)
           opam install -y yojson
+          # dune needs the extraction outputs, so the proof build runs
+          # here too (same as the proof job).
+          cd rocq
+          rocq makefile -f _RocqProject -o Makefile
+          mkdir -p ../core/lib/extracted
+          make vos && make
+          cd ..
           dune build
       - name: CLI
         run: cargo build --release --manifest-path cli/Cargo.toml
