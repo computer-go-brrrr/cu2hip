@@ -7,8 +7,10 @@ program has identical observable behaviors.
 ## Quickstart (prerequisites: clang 22, CUDA toolkit, opam/Rocq 9.2, cargo)
 
 ```sh
-# 1. proofs
+# 1. proofs (opam switch setup per rocq/README.md; Makefile* is gitignored)
 eval $(opam env --switch=cuda-rocm-rocq)
+(cd rocq && rocq makefile -f _RocqProject -o Makefile)
+mkdir -p core/lib/extracted
 make -C rocq vos && make -C rocq
 # 2. pipeline
 cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release

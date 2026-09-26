@@ -1,9 +1,10 @@
 # ROCm 7.14 hipcc check image (G6).
 #
-# What it does: compiles the frozen expected HIP outputs
-# (tests/expected/*.hip) with hipcc for gfx90a + gfx942 WITHOUT running
-# them. Execution happens only where an AMD GPU is present (see ci.sh:
-# it runs the binaries iff rocminfo reports a gfx target).
+# What it does: compiles the v1 corpus outputs (tests/expected/vectorAdd.hip,
+# tests/expected/saxpy.hip) with hipcc for gfx90a + gfx942 WITHOUT running
+# them. tests/expected/reduce-shared.hip (extra, outside the proved
+# fragment) is not gated here. Execution happens only where an AMD GPU is
+# present (see ci.sh: it runs the binaries iff rocminfo reports a gfx target).
 #
 # Not rebuilt by developers: `docker build -f docker/rocm714/Dockerfile .`
 # after pulling ${ROCM_IMAGE} (default rocm/dev-ubuntu-24.04:7.14.0-full;

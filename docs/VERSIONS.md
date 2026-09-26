@@ -4,12 +4,12 @@
 
 | Tool | Version | Role |
 |---|---|---|
-| `clang` | 22.1.8 | frontend base (note: must be CUDA-12.9-compatible per HIPIFY table; verify at G2 build) |
+| `clang` | 22.1.8 | frontend base; 12.9-subset verified (warns benignly on newer toolkits) |
 | `nvcc` | release 13.4, V13.4.59 | host oracle for differential runs (NOT the input ceiling) |
 | `cargo` / `rustc` | 1.98.1 | CLI + validator |
 | `cmake` | 4.4.3 | frontend build |
 | `python3` | 3.14.7 (no pip module) | scripts only; stdlib or vendored deps |
-| `opam` | 2.5.1, switch `cuda-rocm-rocq` (OCaml 5.3.0, building) | Rocq proofs |
+| `opam` | 2.5.1, switch `cuda-rocm-rocq` (OCaml 5.3.0, built; Rocq 9.2 installed, smoke `Qed` green) | Rocq proofs |
 | `docker` | 29.8.0 | ROCm CI |
 | `git` | 2.55.0 | VCS |
 | GPU | NVIDIA RTX 3050 Laptop (nvidia-smi OK) | host differential runs |
