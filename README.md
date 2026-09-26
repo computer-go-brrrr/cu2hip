@@ -37,6 +37,7 @@ sh tests/run_e2e.sh
 | `docs/ADMITS.md` | Proof gaps: **zero admits** |
 | `docs/EXTEND-perf-asm.md` | v2 hooks (perf + PTX lifter), explicitly unimplemented |
 | `rocq/README.md` | Proof architecture + model assumptions |
+| `docs/MATH.md` | Mathematics of the Rocq verification, definition by definition |
 | `frontend/README.md` | Matcher rules, Clang-shape notes, robustness rules |
 | `core/README.md` | Extraction + value-transport bounds |
 | `printer/README.md` | Emission rules + known limitations |
