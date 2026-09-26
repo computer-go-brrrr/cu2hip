@@ -68,43 +68,20 @@ jobs:
           opam install -y rocq-prover rocq-core=9.2.0
       - name: Install Rust
         run: sudo apt-get install -qy cargo
-      - name: Frontend
-        run: |
-          # Pin find_package to clang-22: the runner image also ships a
-          # (partly broken) clang-18 whose ClangTargets.cmake takes
-          # precedence by default search order.
-          cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release \
-            -DLLVM_DIR=/usr/lib/llvm-22/lib/cmake/llvm \
-            -DClang_DIR=/usr/lib/llvm-22/lib/cmake/clang
-          cmake --build frontend/build -j"$(nproc)"
-      - name: Core + printer
+      - name: "Build stages (single source of truth: root Makefile)"
         run: |
           eval $(opam env --switch=cuda-rocm-rocq)
           opam install -y yojson
-          # dune needs the extraction outputs, so the proof build runs
-          # here too (same as the proof job).
-          cd rocq
-          rocq makefile -f _RocqProject -o Makefile
-          mkdir -p ../core/lib/extracted
-          make vos && make
-          cd ..
-          # NOTE: bare `dune build` only builds the cwd alias; @all recurses.
-          dune build @all
-      - name: CLI
-        run: cargo build --release --manifest-path cli/Cargo.toml
+          export CMAKE_EXTRA="-DLLVM_DIR=/usr/lib/llvm-22/lib/cmake/llvm -DClang_DIR=/usr/lib/llvm-22/lib/cmake/clang"
+          # Clang pin rationale: the runner image also ships a partly broken
+          # clang-18 whose ClangTargets.cmake shadows clang-22 by default.
+          # proofs runs here too: dune consumes the extraction outputs.
+          make proofs frontend ocaml cli
       - name: Frozen gates
         run: |
-          export CU2MINI="$PWD/frontend/build/cu2mini"
-          export MINIMAP="$PWD/_build/default/core/bin/minimap.exe"
-          export HIP_PRINT="$PWD/_build/default/printer/hip_print.exe"
+          export CUDA_PATH="/usr/local/cuda-12.9"
           export RESOURCE_DIR="$(clang++-22 -print-resource-dir)"
-          sh tests/run_e2e.sh
-          ./cli/target/release/cu2hip --batch tests/corpus \
-            --output /tmp/batch-h --report /tmp/batch-r --expect-exit 0 \
-            --cuda-path "$CUDA_PATH" --resource-dir "$RESOURCE_DIR"
-          ./cli/target/release/cu2hip --batch tests/reject \
-            --output /tmp/batch-rj --report /tmp/batch-rj --expect-exit 2 \
-            --cuda-path "$CUDA_PATH" --resource-dir "$RESOURCE_DIR"
+          make check
 
   hipcc-check:
     runs-on: ubuntu-24.04

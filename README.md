@@ -7,24 +7,25 @@ program has identical observable behaviors.
 ## Quickstart (prerequisites: clang 22, CUDA toolkit, opam/Rocq 9.2, cargo)
 
 ```sh
-# 1. proofs (opam switch setup per rocq/README.md; Makefile* is gitignored)
 eval $(opam env --switch=cuda-rocm-rocq)
-(cd rocq && rocq makefile -f _RocqProject -o Makefile)
-mkdir -p core/lib/extracted
-make -C rocq vos && make -C rocq
-# 2. pipeline
-cmake -S frontend -B frontend/build -DCMAKE_BUILD_TYPE=Release
-cmake --build frontend/build -j$(nproc)
-dune build @all   # @all required: bare `dune build` skips subdirs
-cargo build --release --manifest-path cli/Cargo.toml
-# 3. transpile + validate
-export CU2MINI=$PWD/frontend/build/cu2mini
-export MINIMAP=$PWD/_build/default/core/bin/minimap.exe
-export HIP_PRINT=$PWD/_build/default/printer/hip_print.exe
-./cli/target/release/cu2hip tests/corpus/vectorAdd.cu -o /tmp/v.hip \
-  --report /tmp/v.json --validate --shim-dir tests/shim
-# 4. full gates
-sh tests/run_e2e.sh
+make proofs frontend ocaml cli   # ~10 min first time (Rocq); see `make help`
+make check                        # fixtures + E2E + batches, no GPU needed
+make validate                     # GPU differential, skips without NVIDIA GPU
+make release                      # versioned dist tarball (implies proofs)
+```
+```
+
+## Usage
+
+```sh
+# Single file (needs only the built binaries + a CUDA toolkit for parsing):
+./cli/target/release/cu2hip your_file.cu -o your_file.hip --report report.json
+# Exit 0: .hip written. Exit 2: input outside the v1 subset — the report
+# names the exact feature and location (see docs/SUPPORTED.md).
+# --validate additionally compiles both sides with nvcc and compares GPU runs.
+# --arch/--cuda-path/--resource-dir override the sm_86, /opt/cuda,
+# /usr/lib/clang/22 defaults. `cu2hip --batch <dir> --expect-exit N` runs a
+# whole directory with per-file expectations.
 ```
 
 ## Docs (start here)
@@ -62,6 +63,8 @@ MiniHIP.json --[hip_print]--> .hip        orchestrated by cu2hip (Rust) with rep
 
 ## Status
 
-G0–G5 + hardening complete; `tests/run_e2e.sh` ALL GREEN; Rocq clean-rebuilt.
-Open: G6 container run (`sudo systemctl start docker`, then
-`sh docker/rocm714/ci.sh`) and the release tag.
+G0–G7 complete; `tests/run_e2e.sh` ALL GREEN; Rocq clean-rebuilt with zero
+admits; `hipcc` compile-check green in ROCm 7.14 CI; `v0.1.0` tagged with a
+`dist/` release tarball recipe (`make release`; `VERSION` file pins it).
+Open: GPU execution of `ci.sh` (needs AMD hardware) and the v2 hooks in
+`docs/EXTEND-perf-asm.md` (perf autotuning, PTX lifter, Lean mirror).

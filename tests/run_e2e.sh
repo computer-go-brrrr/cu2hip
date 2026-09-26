@@ -9,8 +9,9 @@ set -e
 cd "$(dirname "$0")/.."
 CU2MINI=frontend/build/cu2mini
 CUDA_PATH="${CUDA_PATH:-/opt/cuda}"
+ARCH="${ARCH:-sm_86}"
 RESOURCE_DIR="${RESOURCE_DIR:-/usr/lib/clang/22}"
-CU2MINI_FLAGS="--cuda-path $CUDA_PATH --arch sm_86 --resource-dir $RESOURCE_DIR"
+CU2MINI_FLAGS="--cuda-path $CUDA_PATH --arch $ARCH --resource-dir $RESOURCE_DIR"
 eval "$(opam env --switch=cuda-rocm-rocq 2>/dev/null)"
 MM=_build/default/core/bin/minimap.exe
 HP=_build/default/printer/hip_print.exe

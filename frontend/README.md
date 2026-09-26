@@ -8,6 +8,7 @@ Clang-LibTooling tool: CUDA subset → `MiniCUDA.json` (schema `minicuda/v1`).
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ```
+(prefer `make frontend` from the repo root; same commands via the Makefile).
 
 Requires Clang/LLVM dev files (`libclang-cpp`, ASTMatchers/Tooling headers)
 and a CUDA toolkit for headers (`--cuda-path`, default `/opt/cuda`).
