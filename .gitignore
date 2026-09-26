@@ -23,3 +23,6 @@ core/lib/extracted/*.aux
 *.swp
 *~
 .DS_Store
+# Stray CLI outputs at repo root (real outputs live in tests/, /tmp/)
+/*.hip
+/report.json
